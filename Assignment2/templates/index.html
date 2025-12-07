@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Google Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding-top: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .search-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #search-input {
+            flex: 1;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #search-input:focus {
+            border-color: #667eea;
+        }
+
+        #search-button {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+
+        #search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #search-button:active {
+            transform: translateY(0);
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-container.show {
+            display: block;
+        }
+
+        .query-display {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .query-display h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .query-text {
+            color: #667eea;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .result-item {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-title {
+            font-size: 1.3rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .similarity-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .result-content {
+            color: #555;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .result-meta {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #c33;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Personal Google Search</h1>
+            <p>Your own search engine powered by TF-IDF and Cosine Similarity</p>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="Enter your search query (e.g., 'AI and machine learning')..."
+                    autocomplete="off"
+                >
+                <button id="search-button">Search</button>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.total_documents }}</div>
+                    <div class="stat-label">Documents</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.total_chunks }}</div>
+                    <div class="stat-label">Chunks</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ "%.1f"|format(stats.avg_chunks_per_doc) }}</div>
+                    <div class="stat-label">Avg Chunks/Doc</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            Searching...
+        </div>
+
+        <div class="results-container" id="results-container">
+            <div class="query-display" id="query-display"></div>
+            <div class="results-list" id="results-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const loading = document.getElementById('loading');
+        const resultsContainer = document.getElementById('results-container');
+        const queryDisplay = document.getElementById('query-display');
+        const resultsList = document.getElementById('results-list');
+
+        function performSearch() {
+            const query = searchInput.value.trim();
+            
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+
+            // Show loading
+            loading.classList.add('show');
+            resultsContainer.classList.remove('show');
+
+            // Perform search
+            fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.classList.remove('show');
+                
+                if (data.error) {
+                    resultsList.innerHTML = `<div class="error">${data.error}</div>`;
+                    resultsContainer.classList.add('show');
+                    return;
+                }
+
+                // Display query
+                queryDisplay.innerHTML = `
+                    <h2>Search Results</h2>
+                    <div class="query-text">Query: "${data.query}"</div>
+                    <div style="margin-top: 10px; color: #666;">Found ${data.total_results} relevant chunks</div>
+                `;
+
+                // Display results
+                if (data.results && data.results.length > 0) {
+                    resultsList.innerHTML = data.results.map((result, index) => `
+                        <div class="result-item">
+                            <div class="result-header">
+                                <div class="result-title">${result.doc_title} (Rank #${index + 1})</div>
+                                <div class="similarity-score">Score: ${(result.similarity_score * 100).toFixed(2)}%</div>
+                            </div>
+                            <div class="result-content">${result.chunk}</div>
+                            <div class="result-meta">
+                                Document ID: ${result.doc_id} | Chunk Index: ${result.chunk_index}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    resultsList.innerHTML = `
+                        <div class="no-results">
+                            <h3>No results found</h3>
+                            <p>Try a different search query.</p>
+                        </div>
+                    `;
+                }
+
+                resultsContainer.classList.add('show');
+            })
+            .catch(error => {
+                loading.classList.remove('show');
+                resultsList.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                resultsContainer.classList.add('show');
+            });
+        }
+
+        // Event listeners
+        searchButton.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+    </script>
+</body>
+</html>
+
